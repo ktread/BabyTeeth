@@ -5,11 +5,9 @@ cur = con.cursor()
 
 #type = pee/poo/both
 cur.execute("CREATE TABLE diaper(type, timestamp)")
-#side = left or right breast, amount pumped = ounces (weight)
-cur.execute("CREATE TABLE pumping(side, start_timestamp,end_timestamp, amount_pumped)")
-# type = breast/bottle, side = if breast - which side
-cur.execute("CREATE TABLE feeding(type, side, start_timestamp, end_timestamp)")
-# sleep
-cur.execute("CREATE TABLE sleep(start_timestamp, end_timestamp)")
+#side = left or right breast, amount pumped = ounces (weight) #type= breast/bottle
+cur.execute("CREATE TABLE eating(type, side, start_timestamp, amount)")
+# sleep = sleep_type = asleep/awake, wake_type = how woken up
+cur.execute("CREATE TABLE sleep(sleep_type, wake_type, timestamp)")
 
 con.commit()

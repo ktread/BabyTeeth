@@ -1,12 +1,11 @@
-# set_dial_callback() use to take action
-
 import os
 import threading
-import harrison.config as c
+import config as c
+import db_queries as db
 
 from PIL import Image, ImageDraw, ImageFont
-from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
+from StreamDeck.DeviceManager import DeviceManager
 
 
 def get_key_style(deck, key, key_state, page):
@@ -14,8 +13,8 @@ def get_key_style(deck, key, key_state, page):
     if key_state == True:
         return {
             "name": 0,
-            "icon": '/Users/treads/PycharmProjects/streamdeck/harrison/assets/press.png',
-            "font": '/Users/treads/PycharmProjects/streamdeck/harrison/assets/opensans.ttf',
+            "icon": '/Users/treads/CodingProjects/BabyTeeth/assets/press.png',
+            "font": '/Users/treads/CodingProjects/BabyTeeth/assets/opensans.ttf',
             "label": 'Logged'
         }
     else:
@@ -47,40 +46,63 @@ def page_render(deck, screen_state):
     for key in range(deck.key_count()):
         update_key_image(deck, key, False, screen_state.page)
 
+def update_page_state(screen_state, key):
+    if screen_state.page == c.PAGE_INITIAL:
+        update_initial(key, screen_state)
+    elif screen_state.page == c.PAGE_HOW:
+        update_how(key, screen_state)
+    elif screen_state.page == c.PAGE_HOW_MUCH:
+        update_how_much(key, screen_state)
+
 
 def update_initial(key, screen_state):
+    screen_state.page = c.PAGE_INITIAL
     screen_state.amount = 0
     screen_state.point_press = False
+    if key in (2, 3, 4, 5):
+        screen_state.page = c.PAGE_HOW_MUCH
+        print(key)
+    if key == 0:
+        screen_state.page = c.PAGE_HOW
+    if key == 1:
+        db.write_row(screen_state.page, sleep_type="Sleep",wake_type=None)
+    if key ==6 :
+        db.write_row(screen_state.page, diaper_type="Pee")
+    if key == 7:
+        db.write_row(screen_state.page, diaper_type="Poo")
+    if key == 9:
+        db.write_row(screen_state.page, diaper_type="Empty")
 
 
-def update_how(key, screen_state):
-    pass
+
+def update_how(key, screen_state, **kwargs ):
+    if key == 0:
+        db.write_row(screen_state.page, wake_type="Dogs Barking", sleep_type="Sleep")
+    if key == 1:
+        db.write_row(screen_state.page, wake_type="Kate", sleep_type="Sleep")
+    if key == 2:
+        db.write_row(screen_state.page, wake_type="Craig", sleep_type="Sleep")
+    if key == 3:
+        db.write_row(screen_state.page, wake_type="Hangry", sleep_type="Sleep")
+    if key == 14:
+        update_initial(key, screen_state)
 
 
 def update_how_much(key, screen_state):
     if key == 10:
         screen_state.point_press = True
-    if key == 14:
-        update_initial(key, screen_state)
-    if screen_state.point_press == False:
+    if screen_state.point_press == False and key not in (10, 14):
         screen_state.amount = screen_state.amount + (key + 1)
-        print(screen_state.amount)
-    elif screen_state.point_press == True:
+        #print(screen_state.amount)
+    if screen_state.point_press and key not in (10, 14):
         screen_state.amount = screen_state.amount + ((key + 1) / 10)
-        print(screen_state.amount)
-
-
-def update_page_state(screen_state, key):
-    if screen_state.page == c.PAGE_INITIAL:
-        if key in (2, 3, 4, 5):
-            screen_state.page = c.PAGE_HOW_MUCH
-        else:
-            pass
-    elif screen_state.page == c.PAGE_HOW:
-        pass
-    elif screen_state.page == c.PAGE_HOW_MUCH:
-        update_how_much(key, screen_state)
-
+        #print(screen_state.amount)
+    if key == 14:
+        feed_type = "find key later"
+        side = "same with feed_type"
+        db.write_row(screen_state.page, feed_type=feed_type, side=side, screen_state_amount=screen_state.amount)
+        update_initial(key, screen_state)
+        max(1, 2, 3, 4, 5)
 
 def key_change_callback(deck, key, key_state, screen_state):
     # Update the key image based on the new key state.
